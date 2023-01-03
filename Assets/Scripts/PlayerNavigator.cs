@@ -26,6 +26,9 @@ public class PlayerNavigator : MonoBehaviour {
   // By default, we allow all navmeshes to be used
   private int enabledAreaMask = NavMesh.AllAreas;
 
+  // Keep track of wether stairs are enabled or not
+  private bool stairsEnabled = true;
+
   // Our path should have a max length of 500 corners and
   // visit 1024 navmesh polygons. This can be changed, but
   // one needs to make sure that the computation of the path
@@ -64,6 +67,23 @@ public class PlayerNavigator : MonoBehaviour {
   // Enable stairs for navigation
   public void enableStairs() {
     enabledAreaMask = NavMesh.AllAreas;
+  }
+
+  // Toggle stairs for navigation
+  public void toggleStairs() {
+    // Toggle the boolean flag
+    stairsEnabled = !stairsEnabled;
+
+    if (stairsEnabled) {
+      // Use all areas of the navmesh for navigation
+      enabledAreaMask = NavMesh.AllAreas;
+    }
+    else {
+      // Remove stairs from the available areas for navigation
+      int areaMask = NavMesh.AllAreas;
+      areaMask -= 1 << NavMesh.GetAreaFromName("Stairs");
+      enabledAreaMask = areaMask;
+    }
   }
 
   // Update is called once per frame
@@ -123,14 +143,16 @@ public class PlayerNavigator : MonoBehaviour {
   //  }
   //}
 
-  // The update() method currently just starts the coroutine for updatind the path
-  void Update() {
+  // The Start() method currently just starts the coroutine for updatind the path
+  void Start() {
     StartCoroutine(UpdatePath());
   }
 
   IEnumerator UpdatePath() {
-    calculatePath();
-    yield return new WaitForSeconds(pathUpdateSpeed);
+    while (true) {
+      calculatePath();
+      yield return new WaitForSeconds(pathUpdateSpeed);
+    }
   }
 
   // Adapted from https://forum.unity.com/threads/how-to-use-navmeshquery-get-path-points.646861/
