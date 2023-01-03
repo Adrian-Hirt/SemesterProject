@@ -86,63 +86,6 @@ public class PlayerNavigator : MonoBehaviour {
     }
   }
 
-  // Update is called once per frame
-  //void Update() {
-  //  if (targetObject != null) {
-  //    WaitForSeconds Wait = new WaitForSeconds(pathUpdateSpeed);
-  //    NavMeshPath path = new NavMeshPath();
-
-  //    // Get the nearest places on the navmesh for the target and the current position
-  //    NavMeshHit myNavHitStart;
-  //    if (!NavMesh.SamplePosition(transform.position, out myNavHitStart, 100, enabledAreaMask)) {
-  //      Debug.Log("Could not find nearest navmesh for the start position");
-  //      return;
-  //    }
-
-  //    NavMeshHit myNavHitEnd;
-  //    if (!NavMesh.SamplePosition(targetObject.transform.position, out myNavHitEnd, 100, enabledAreaMask)) {
-  //      Debug.Log("Could not find nearest navmesh for the end position");
-  //      return;
-  //    }
-
-  //    if (NavMesh.CalculatePath(myNavHitStart.position, myNavHitEnd.position, enabledAreaMask, path)) {
-  //      Debug.Log(path.corners.Length);
-  //      // Check if we have a complete path or not. If we don't have a complete path, we can't
-  //      // proceed with the navigation, and should just return here. We also should hide the
-  //      // NavLine, such that people don't get confused
-  //      if (path.status != NavMeshPathStatus.PathComplete) {
-  //        //line.enabled = false;
-  //        //remainingDistanceText.text = "Target not reachable";
-  //        //return;
-  //      }
-
-  //      // Update ray
-  //      line.positionCount = path.corners.Length;
-
-  //      // Turn on the line (in case it's been disabled previously by an incomplete
-  //      // havigation
-  //      line.enabled = true;
-
-  //      // For calculation of the line length
-  //      float lineLength = 0.0f;
-
-  //      for (var i = 0; i < path.corners.Length; i++) {
-  //        line.SetPosition(i, path.corners[i] + Vector3.up * pathHeightOffset);
-  //        if (i != 0) {
-  //          lineLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-  //        }
-  //      }
-
-  //      remainingDistanceText.text = lineLength.ToString("n1") + "m";
-  //    }
-  //    else {
-  //      // Target not reachable
-  //      line.enabled = false;
-  //      remainingDistanceText.text = "Target not reachable";
-  //    }
-  //  }
-  //}
-
   // The Start() method currently just starts the coroutine for updatind the path
   void Start() {
     StartCoroutine(UpdatePath());
