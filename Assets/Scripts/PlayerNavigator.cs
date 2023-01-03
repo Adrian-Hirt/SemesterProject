@@ -36,6 +36,8 @@ public class PlayerNavigator : MonoBehaviour {
   private const int maxPathLength = 500;
   private const int maxIterations = 1024;
 
+  private const float navigationEndThreshold = 0.5f;
+
   // We set the allowed pathNodePoolSize to the max number possible
   private const int pathNodePoolSize = ushort.MaxValue;
 
@@ -174,6 +176,14 @@ public class PlayerNavigator : MonoBehaviour {
 
               // Update the info in the GUI
               remainingDistanceText.text = lineLength.ToString("n1") + "m";
+
+              // If we're closer to the target than a certain threshold, we consider
+              // the navigation to be complete, and therefore disable the navigation
+              if (lineLength < navigationEndThreshold) {
+                remainingDistanceText.text = "Target reached!";
+                targetObject = null;
+                line.enabled = false;
+              }
             }
           }
           finally {
