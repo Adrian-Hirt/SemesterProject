@@ -88,7 +88,7 @@ public class PlayerNavigator : MonoBehaviour {
     }
   }
 
-  // The Start() method currently just starts the coroutine for updatind the path
+  // The Start() method currently just starts the coroutine for updating the path
   void Start() {
     StartCoroutine(UpdatePath());
   }
@@ -160,7 +160,7 @@ public class PlayerNavigator : MonoBehaviour {
               line.positionCount = positionCount;
 
               // Turn on the line (in case it's been disabled previously by an incomplete
-              // havigation
+              // navigation)
               line.enabled = true;
 
               // For calculation of the line length
