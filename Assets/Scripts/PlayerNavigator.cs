@@ -224,4 +224,15 @@ public class PlayerNavigator : MonoBehaviour {
     // Also free the query object at the end, such that all objects are freed
     query.Dispose();
   }
+
+  public void ChangeLineRenderer(LineRenderer other) {
+    // Disable old line
+    line.enabled = false;
+
+    // Update line
+    line = other;
+
+    // Enable new line
+    line.enabled = true;
+  }
 }

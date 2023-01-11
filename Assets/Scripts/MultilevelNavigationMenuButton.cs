@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Utilities;
 
-public class MultilevelNavigationMenu : MonoBehaviour {
+public class MultilevelNavigationMenuButton : MonoBehaviour {
   public GameObject container;
 
   // Can be used on a button to open the "child" button collection,
