@@ -13,6 +13,9 @@ public class PlayerNavigator : MonoBehaviour {
   // The target of the navigation
   public GameObject targetObject;
 
+  // DirectionalArrow plane
+  public GameObject DirectionalArrowPlane;
+
   // GUI texts
   public TMP_Text remainingDistanceText;
   public TMP_Text currentTargetText;
@@ -36,16 +39,31 @@ public class PlayerNavigator : MonoBehaviour {
   private const int maxPathLength = 500;
   private const int maxIterations = 1024;
 
+  // Distance we need to be away from our goal to consider the navigation to be done
   private const float navigationEndThreshold = 0.5f;
 
   // We set the allowed pathNodePoolSize to the max number possible
   private const int pathNodePoolSize = ushort.MaxValue;
 
+  // Position of the next "node" in the nav path (for directional arrow nav)
+  private Vector3 nextNodePosition;
+
+  // Enum to hold the various renderer modes we have
+  public enum NavRendererMode {
+    Line = 0,
+    DirectionalArrow = 1
+  }
+
+  // Holds the current renderer mode
+  NavRendererMode currentNavRendererMode = NavRendererMode.Line;
+
+  // Keep track if we should render the navigation
+  private bool renderNavigation = false;
+
   // Set the target of the navigation
   public void setTarget(GameObject target) {
     targetObject = target;
     currentTargetText.text = "Current target: " + targetObject.name;
-    line.enabled = true;
   }
 
   // Remove the target of the navigation, which also will disable
@@ -54,7 +72,7 @@ public class PlayerNavigator : MonoBehaviour {
     targetObject = null;
     currentTargetText.text = "-- No target selected --";
     remainingDistanceText.text = "0m";
-    line.enabled = false;
+    renderNavigation = false;
   }
 
   // Disable all navmesh areas which are names "Stairs", such that
@@ -97,6 +115,12 @@ public class PlayerNavigator : MonoBehaviour {
     while (true) {
       calculatePath();
       yield return new WaitForSeconds(pathUpdateSpeed);
+    }
+  }
+
+  void Update() {
+    if(currentNavRendererMode == NavRendererMode.DirectionalArrow) {
+      UpdateDirectionalArrow();
     }
   }
 
@@ -156,23 +180,22 @@ public class PlayerNavigator : MonoBehaviour {
 
             // If computing the actual path was successfull, we can now update the line and render the line
             if (pathStatus == PathQueryStatus.Success) {
-              // Update the size of the line
-              line.positionCount = positionCount;
-
-              // Turn on the line (in case it's been disabled previously by an incomplete
-              // navigation)
-              line.enabled = true;
+              // Turn on the navigation
+              renderNavigation = true;
 
               // For calculation of the line length
               float lineLength = 0.0f;
  
-              // Set the positions of the line, and compute the length of the navigation
-              for (int i = 0; i < positionCount; i++) {
-                line.SetPosition(i, straightPath[i].position + Vector3.up * pathHeightOffset);
-                if (i != 0) {
-                  lineLength += Vector3.Distance(straightPath[i - 1].position, straightPath[i].position);
-                }
+              // Compute the length of the navigation
+              for (int i = 1; i < positionCount; i++) {
+                lineLength += Vector3.Distance(straightPath[i - 1].position, straightPath[i].position);
               }
+
+              // Render the line (if we want to render a line)
+              DrawLine(straightPath, positionCount);
+
+              // Update the position of the "next" node
+              nextNodePosition = straightPath[1].position;
 
               // Update the info in the GUI
               remainingDistanceText.text = lineLength.ToString("n1") + "m";
@@ -201,9 +224,7 @@ public class PlayerNavigator : MonoBehaviour {
           // Stop searching
           searching = false;
 
-          // Target not reachable
-          line.enabled = false;
-          remainingDistanceText.text = "Target not reachable";
+          DisableRenderings();
 
           // Exit from the loop
           break;
@@ -212,9 +233,7 @@ public class PlayerNavigator : MonoBehaviour {
           // Stop searching
           searching = false;
 
-          // Target not reachable
-          line.enabled = false;
-          remainingDistanceText.text = "Target not reachable";
+          DisableRenderings();
 
           // Exit from the loop
           break;
@@ -232,7 +251,81 @@ public class PlayerNavigator : MonoBehaviour {
     // Update line
     line = other;
 
-    // Enable new line
+    //// Enable new line
+    //line.enabled = true;
+  }
+
+  public void SetNavRenderMode(int newMode) {
+    // Disable old renderer
+    line.enabled = false;
+    DirectionalArrowPlane.SetActive(false);
+
+    // Update the mode of rendering
+    currentNavRendererMode = (NavRendererMode)newMode;
+
+    // Return early if we don't render the nav right now
+    if (!renderNavigation) {
+      return;
+    }
+
+    // Enable the new renrerer
+    if (currentNavRendererMode == NavRendererMode.DirectionalArrow) {
+      DirectionalArrowPlane.SetActive(true);
+    }
+    else {
+      line.enabled = true;
+    }
+  }
+
+  private void DisableRenderings() {
+    renderNavigation = false;
+
+    // Disable the line
+    line.enabled = false;
+
+    // Disable the directional arrow
+    DirectionalArrowPlane.SetActive(false);
+
+    // Update infotext
+    remainingDistanceText.text = "Target not reachable";
+
+    // No next position
+    nextNodePosition = Vector3.zero;
+  }
+
+  private void DrawLine(NativeArray<NavMeshLocation> straightPath, int positionCount) {
+    // Check if we even want to render the navigation
+    if(!renderNavigation) {
+      line.enabled = false;
+      return;
+    }
+
+    // If the chosen mode is not one where we draw a line we don't need to do anything
+    if(currentNavRendererMode != NavRendererMode.Line) {
+      line.enabled = false;
+      return;
+    }
+
+    // Otherwise, enable the line and draw it
     line.enabled = true;
+
+    // Update the size of the line
+    line.positionCount = positionCount;
+
+    // Set the positions of the line, and compute the length of the navigation
+    for (int i = 0; i < positionCount; i++) {
+      line.SetPosition(i, straightPath[i].position + Vector3.up * pathHeightOffset);
+    }
+  }
+
+  private void UpdateDirectionalArrow() {
+    if (renderNavigation && nextNodePosition != Vector3.zero) {
+      DirectionalArrowPlane.SetActive(true);
+      // Point the directional arrow towards the next position.
+      DirectionalArrowPlane.transform.LookAt(nextNodePosition + Vector3.up * pathHeightOffset);
+    }
+    else {
+      DirectionalArrowPlane.SetActive(false);
+    }
   }
 }
