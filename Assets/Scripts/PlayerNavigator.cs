@@ -40,7 +40,7 @@ public class PlayerNavigator : MonoBehaviour {
   private const int maxIterations = 1024;
 
   // Distance we need to be away from our goal to consider the navigation to be done
-  private const float navigationEndThreshold = 0.5f;
+  private const float navigationEndThreshold = 2.0f;
 
   // We set the allowed pathNodePoolSize to the max number possible
   private const int pathNodePoolSize = ushort.MaxValue;
@@ -69,10 +69,19 @@ public class PlayerNavigator : MonoBehaviour {
   // Remove the target of the navigation, which also will disable
   // the calculation of the path
   public void clearTarget() {
+    // Clear the target object
     targetObject = null;
+
+    // Update the infotexts
     currentTargetText.text = "-- No target selected --";
     remainingDistanceText.text = "0m";
+
+    // Disable rendering the navigation
     renderNavigation = false;
+
+    // Disable the line and the directional arrow
+    line.enabled = false;
+    DirectionalArrowPlane.SetActive(false);
   }
 
   // Disable all navmesh areas which are names "Stairs", such that
@@ -185,7 +194,7 @@ public class PlayerNavigator : MonoBehaviour {
 
               // For calculation of the line length
               float lineLength = 0.0f;
- 
+
               // Compute the length of the navigation
               for (int i = 1; i < positionCount; i++) {
                 lineLength += Vector3.Distance(straightPath[i - 1].position, straightPath[i].position);
@@ -194,8 +203,13 @@ public class PlayerNavigator : MonoBehaviour {
               // Render the line (if we want to render a line)
               DrawLine(straightPath, positionCount);
 
-              // Update the position of the "next" node
-              nextNodePosition = straightPath[1].position;
+              // Update the position of the "next" node¨
+              if (positionCount >= 1) {
+                nextNodePosition = straightPath[1].position;
+              }
+              else {
+                nextNodePosition = Vector3.zero;
+              }
 
               // Update the info in the GUI
               remainingDistanceText.text = lineLength.ToString("n1") + "m";
@@ -204,11 +218,20 @@ public class PlayerNavigator : MonoBehaviour {
               // the navigation to be complete, and therefore disable the navigation
               if (lineLength < navigationEndThreshold) {
                 remainingDistanceText.text = "Target reached!";
+
+                // Set target to null
                 targetObject = null;
-                line.enabled = false;
+
+                DisableRenderings();
               }
             }
           }
+          catch(System.IndexOutOfRangeException ex) {
+            Debug.Log(ex.Message);
+
+            //DisableRenderings();
+          }
+
           finally {
             // Always call the Dispose methods, or otherwise we get a memory leak
             straightPath.Dispose();
@@ -226,6 +249,9 @@ public class PlayerNavigator : MonoBehaviour {
 
           DisableRenderings();
 
+          // Update infotext
+          remainingDistanceText.text = "Target not reachable";
+
           // Exit from the loop
           break;
 
@@ -234,6 +260,9 @@ public class PlayerNavigator : MonoBehaviour {
           searching = false;
 
           DisableRenderings();
+
+          // Update infotext
+          remainingDistanceText.text = "Target not reachable";
 
           // Exit from the loop
           break;
@@ -278,6 +307,7 @@ public class PlayerNavigator : MonoBehaviour {
   }
 
   private void DisableRenderings() {
+    // Toggle boolean
     renderNavigation = false;
 
     // Disable the line
@@ -285,9 +315,6 @@ public class PlayerNavigator : MonoBehaviour {
 
     // Disable the directional arrow
     DirectionalArrowPlane.SetActive(false);
-
-    // Update infotext
-    remainingDistanceText.text = "Target not reachable";
 
     // No next position
     nextNodePosition = Vector3.zero;
