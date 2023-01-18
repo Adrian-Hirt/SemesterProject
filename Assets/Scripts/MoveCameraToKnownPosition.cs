@@ -3,10 +3,15 @@ using Microsoft.MixedReality.Toolkit;
 
 public class MoveCameraToKnownPosition : MonoBehaviour {
   public void SetPositionOfCamera(GameObject target) {
-    // Vector3 delta = Vector3.zero;
-    // delta = MixedRealityPlayspace.Transform.position - target.transform.position;
-    // MixedRealityPlayspace.Transform.Translate(delta);
+    // First we reset the playspace to the zero point
+    Vector3 resetPlayspace = Vector3.zero - MixedRealityPlayspace.Transform.position;
+    MixedRealityPlayspace.Transform.Translate(resetPlayspace);
 
-    Camera.main.transform.position = new Vector3(target.transform.position.x, 0.0f, target.transform.position.z);
+    // Compute the transform to the new position
+    Vector3 playspaceOffset = target.transform.position - Camera.main.transform.position;
+    playspaceOffset.z += 1.7f;
+
+    // Update the playspace position
+    MixedRealityPlayspace.Transform.Translate(playspaceOffset);
   }
 }

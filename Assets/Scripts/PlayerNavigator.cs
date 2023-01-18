@@ -131,6 +131,9 @@ public class PlayerNavigator : MonoBehaviour {
     if(currentNavRendererMode == NavRendererMode.DirectionalArrow) {
       UpdateDirectionalArrow();
     }
+    else {
+      UpdateNavlineStart();
+    }
   }
 
   // Adapted from https://forum.unity.com/threads/how-to-use-navmeshquery-get-path-points.646861/
@@ -353,6 +356,17 @@ public class PlayerNavigator : MonoBehaviour {
     }
     else {
       DirectionalArrowPlane.SetActive(false);
+    }
+  }
+
+  // Update the first node of the rendered line for a smoother experience
+  private void UpdateNavlineStart() {
+    if (renderNavigation && nextNodePosition != Vector3.zero) {
+      NavMeshHit navMeshHit;
+
+      if (NavMesh.SamplePosition(transform.position, out navMeshHit, 10, enabledAreaMask)) {
+        line.SetPosition(0, navMeshHit.position + Vector3.up * pathHeightOffset);
+      }
     }
   }
 }
