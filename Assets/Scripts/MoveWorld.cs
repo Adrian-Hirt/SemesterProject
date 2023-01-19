@@ -4,7 +4,6 @@ using Microsoft.MixedReality.Toolkit;
 public class MoveWorld : MonoBehaviour {
   private const float largeTranslationOffsetMultiplier = 10.0f;
   private const float largeRotationOffsetMultiplier = 15.0f;
-
   private bool largeOffsetModeEnabled = false;
 
   public void MoveInXDirection(float offset) {

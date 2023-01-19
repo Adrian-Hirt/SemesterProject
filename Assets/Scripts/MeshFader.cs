@@ -3,44 +3,31 @@ using UnityEngine;
 
 public class MeshFader : MonoBehaviour {
   public Material material;
-  private Color initialColor = new Color(0.7176f, 0.7176f, 0.7176f, 1.0f);
-  private float currentRenderMode = 0;
+  public Shader diffuseShader;
+  public Shader invisibleShader;
+
+  private Color diffuseInitialColor = new Color(0.7176f, 0.7176f, 0.7176f, 1.0f);
+  private const float colorStepFactor = (150.0f / 255.0f);
 
   public void Start() {
-    // Reset color
-    material.color = initialColor;
+    // Reset shader to the invisible shader
+    material.shader = invisibleShader;
+    //material.shader = diffuseShader;
 
-    // Enable opaque mode
-    material.SetFloat("_Mode", 0); // opaque
-    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-    material.SetInt("_ZWrite", 1);
-    material.DisableKeyword("_ALPHATEST_ON");
-    material.DisableKeyword("_ALPHABLEND_ON");
-    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-    material.renderQueue = -1;
-
+    // Reset color for diffuse shader
+    material.color = diffuseInitialColor;
   }
 
   public void UpdateAlphaFromSlider(SliderEventData eventData) {
-    // The color we'll modify
-    Color color = material.color;
-
     if (eventData.NewValue < 0.01f) {
-      // Enable cutout mode to completely hide the meshes
-      material.SetFloat("_Mode", 1); // cutout
-      material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-      material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-      material.SetInt("_ZWrite", 1);
-      material.EnableKeyword("_ALPHATEST_ON");
-      material.DisableKeyword("_ALPHABLEND_ON");
-      material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-      material.renderQueue = 2450;
+      // Switch to invisible shader to completely hide the mesh
+      material.shader = invisibleShader;
 
-      // Set alpha value to zero
-      color.a = 0.0f;
     }
-    else if(eventData.NewValue > 0.99f) {
+    else if (eventData.NewValue > 0.99f) {
+      // Switch to standard diffuse shader
+      material.shader = diffuseShader;
+
       // Enable opaque mode
       material.SetFloat("_Mode", 0); // opaque
       material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
@@ -51,10 +38,13 @@ public class MeshFader : MonoBehaviour {
       material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
       material.renderQueue = -1;
 
-      // Set alpha value to one
-      color.a = 1.0f;
+      // Update the color
+      material.color = diffuseInitialColor;
     }
     else {
+      // Switch to standard diffuse shader
+      material.shader = diffuseShader;
+
       // Enable transparent mode
       material.SetFloat("_Mode", 3); // transparent
       material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
@@ -65,12 +55,14 @@ public class MeshFader : MonoBehaviour {
       material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
       material.renderQueue = 3000;
 
-      // Update the alpha value
-      color.a = eventData.NewValue;
-    }
+      float colorValue = eventData.NewValue * colorStepFactor;
 
-    // Update the color
-    material.color = color;
+      // Get color from material
+      Color color = new Color(colorValue, colorValue, colorValue, eventData.NewValue);
+
+      // Update the color
+      material.color = color;
+    }
   }
 
 }
