@@ -207,7 +207,19 @@ public class PlayerNavigator : MonoBehaviour {
               DrawLine(straightPath, positionCount);
 
               // Update the position of the "next" node¨
-              if (positionCount >= 1) {
+              if (positionCount >= 3) {
+                float distance = Vector3.Distance(straightPath[1].position, Camera.main.transform.position);
+
+                if (distance < 2.0f) {
+                  Debug.Log("Second position");
+                  nextNodePosition = straightPath[2].position;
+                }
+                else {
+                  nextNodePosition = straightPath[1].position;
+                }
+
+              }
+              else if (positionCount == 2) {
                 nextNodePosition = straightPath[1].position;
               }
               else {
@@ -351,8 +363,28 @@ public class PlayerNavigator : MonoBehaviour {
   private void UpdateDirectionalArrow() {
     if (renderNavigation && nextNodePosition != Vector3.zero) {
       DirectionalArrowPlane.SetActive(true);
+
+      float targetY = Camera.main.transform.position.y - 0.5f;
+
+      // Quickly shift the arrow back to the camera, such that the "look at"
+      // correctly computes the direction we're pointing at
+      Vector3 targetPosition = Camera.main.transform.position;
+      targetPosition.y = targetY;
+      DirectionalArrowPlane.transform.position = targetPosition;
+
       // Point the directional arrow towards the next position.
-      DirectionalArrowPlane.transform.LookAt(nextNodePosition + Vector3.up * pathHeightOffset);
+      Vector3 nextLookAtPosition = new Vector3(nextNodePosition.x, nextNodePosition.y, nextNodePosition.z);
+      nextLookAtPosition.y = targetY;
+      DirectionalArrowPlane.transform.LookAt(nextLookAtPosition);
+
+      // Move arrow forward
+      targetPosition = Camera.main.transform.position + (Camera.main.transform.forward * 1.5f);
+
+      // Move the arrow down a bit
+      targetPosition.y -= 0.5f;
+
+      // Set the position of the arrow
+      DirectionalArrowPlane.transform.position = targetPosition;
     }
     else {
       DirectionalArrowPlane.SetActive(false);
