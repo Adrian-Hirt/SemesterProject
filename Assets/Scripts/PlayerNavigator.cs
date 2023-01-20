@@ -211,7 +211,6 @@ public class PlayerNavigator : MonoBehaviour {
                 float distance = Vector3.Distance(straightPath[1].position, Camera.main.transform.position);
 
                 if (distance < 2.0f) {
-                  Debug.Log("Second position");
                   nextNodePosition = straightPath[2].position;
                 }
                 else {
